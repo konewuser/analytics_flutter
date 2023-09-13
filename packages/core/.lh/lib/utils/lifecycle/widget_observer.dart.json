@@ -1,0 +1,18 @@
+{
+    "sourceFile": "lib/utils/lifecycle/widget_observer.dart",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1694578369827,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1694578369827,
+            "name": "Commit-0",
+            "content": "import 'dart:async';\nimport 'package:flutter/widgets.dart';\n\nimport 'lifecycle.dart';\n\nabstract class LifeCycle extends Stream<AppStatus> {}\n\nclass LifeCycleImpl extends LifeCycle with WidgetsBindingObserver {\n  final StreamController<AppLifecycleState> _streamController = StreamController<AppLifecycleState>.broadcast();\n\n  LifeCycleImpl() {\n    WidgetsBinding.instance.addObserver(this);\n  }\n\n  @override\n  void didChangeAppLifecycleState(AppLifecycleState state) {\n      _streamController.add(state);\n  }\n\n  @override\n  StreamSubscription<AppStatus> listen(void Function(AppStatus event)? onData, {Function? onError, void Function()? onDone, bool? cancelOnError}) {\n    final subscription = _streamController.stream.listen((event) => event == AppLifecycleState.resumed ? AppStatus.foreground : AppStatus.background);\n    return _LifeCycleSuscription(subscription);\n  }\n}\n\nclass _LifeCycleSuscription extends StreamSubscription<AppStatus> {\n  final StreamSubscription<AppLifecycleState> _subscription;\n\n  _LifeCycleSuscription(this._subscription);\n\n  @override\n  Future<E> asFuture<E>([E? futureValue]) {\n    return _subscription.asFuture(futureValue);\n  }\n\n  @override\n  Future<void> cancel() {\n    return _subscription.cancel();\n  }\n\n  @override\n  bool get isPaused => _subscription.isPaused;\n\n  @override\n  void onData(void Function(AppStatus data)? handleData) {\n    _subscription.onData(handleData == null\n        ? null\n        : (data) {\n            if (data == AppLifecycleState.resumed) {\n              handleData(AppStatus.foreground);\n            } else if (data == AppLifecycleState.paused || data == AppLifecycleState.inactive) {\n              handleData(AppStatus.background);\n            }\n          });\n  }\n\n  @override\n  void onDone(void Function()? handleDone) {\n    _subscription.onData(handleDone == null\n        ? null\n        : (data) {\n            handleDone();\n          });\n  }\n\n  @override\n  void onError(Function? handleError) {\n    _subscription.onData(handleError == null\n        ? null\n        : (error) {\n            handleError(error);\n          });\n  }\n\n  @override\n  void pause([Future<void>? resumeSignal]) {\n    _subscription.pause(resumeSignal);\n  }\n\n  @override\n  void resume() {\n    _subscription.resume();\n  }\n}\n\n"
+        }
+    ]
+}

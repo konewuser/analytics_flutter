@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 
-enum AppStatus { foreground, background }
+import 'lifecycle.dart';
 
 abstract class LifeCycle extends Stream<AppStatus> {}
 
 class LifeCycleImpl extends LifeCycle with WidgetsBindingObserver {
-  final StreamController<AppLifecycleState> _streamController = StreamController<AppLifecycleState>.broadcast();
+  final StreamController<AppLifecycleState> _streamController =
+      StreamController<AppLifecycleState>.broadcast();
 
   LifeCycleImpl() {
     WidgetsBinding.instance.addObserver(this);
@@ -14,12 +15,16 @@ class LifeCycleImpl extends LifeCycle with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-      _streamController.add(state);
+    _streamController.add(state);
   }
 
   @override
-  StreamSubscription<AppStatus> listen(void Function(AppStatus event)? onData, {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-    final subscription = _streamController.stream.listen((event) => event == AppLifecycleState.resumed ? AppStatus.foreground : AppStatus.background);
+  StreamSubscription<AppStatus> listen(void Function(AppStatus event)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+    final subscription = _streamController.stream.listen((event) =>
+        event == AppLifecycleState.resumed
+            ? AppStatus.foreground
+            : AppStatus.background);
     return _LifeCycleSuscription(subscription);
   }
 }
@@ -49,7 +54,8 @@ class _LifeCycleSuscription extends StreamSubscription<AppStatus> {
         : (data) {
             if (data == AppLifecycleState.resumed) {
               handleData(AppStatus.foreground);
-            } else if (data == AppLifecycleState.paused || data == AppLifecycleState.inactive) {
+            } else if (data == AppLifecycleState.paused ||
+                data == AppLifecycleState.inactive) {
               handleData(AppStatus.background);
             }
           });
@@ -83,4 +89,3 @@ class _LifeCycleSuscription extends StreamSubscription<AppStatus> {
     _subscription.resume();
   }
 }
-
